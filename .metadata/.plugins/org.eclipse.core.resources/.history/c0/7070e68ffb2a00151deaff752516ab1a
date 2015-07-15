@@ -1,0 +1,52 @@
+package org.de.koalalabs.mute;
+
+import javax.swing.JFrame;
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+
+public class MuteGui extends JFrame {
+	private JMenuBar menuBar;
+	private JMenu mnDatei;
+	private JMenuItem mntmSpeichern;
+	public MuteGui() {
+		initGUI();
+	}
+	private void initGUI() {
+		setPreferredSize(new Dimension(900, 900));
+		setMinimumSize(new Dimension(500, 500));
+		setSize(new Dimension(900, 900));
+		setVisible(true);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		GridBagLayout gridBagLayout = new GridBagLayout();
+		gridBagLayout.columnWidths = new int[]{0};
+		gridBagLayout.rowHeights = new int[]{0};
+		gridBagLayout.columnWeights = new double[]{Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{Double.MIN_VALUE};
+		getContentPane().setLayout(gridBagLayout);
+		setJMenuBar(getMenuBar_1());
+	}
+
+	private JMenuBar getMenuBar_1() {
+		if (menuBar == null) {
+			menuBar = new JMenuBar();
+			menuBar.add(getMnDatei());
+		}
+		return menuBar;
+	}
+	private JMenu getMnDatei() {
+		if (mnDatei == null) {
+			mnDatei = new JMenu("Datei");
+			mnDatei.add(getMntmSpeichern());
+		}
+		return mnDatei;
+	}
+	private JMenuItem getMntmSpeichern() {
+		if (mntmSpeichern == null) {
+			mntmSpeichern = new JMenuItem("Speichern");
+		}
+		return mntmSpeichern;
+	}
+}
