@@ -1,0 +1,10 @@
+package org.de.koalalabs.mute;
+
+import java.awt.Canvas;
+import java.awt.Graphics;
+
+public class MuteCanvas extends Canvas {
+	public void paint(final Graphics g) {
+		g.drawOval(200, 200, 50, 50);
+	}
+}

@@ -1,0 +1,27 @@
+package org.de.koalalabs.mute;
+
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Graphics;
+
+public class MuteCanvas extends Canvas {
+	private static final long serialVersionUID = 1L;
+
+	public MuteCanvas() {
+		setBackground(Color.WHITE);
+		// setSize(500, 500);
+	}
+
+	public void paint(final Graphics g) {
+		int width = getWidth();
+		int height = getHeight();
+		// super.paintComponent(g);
+
+		int xstart = 0;
+
+		for (int i = 1; i <= 50; i++) {
+			xstart = i * (width / 50);
+			g.drawLine(xstart, 0, xstart, height);
+		}
+	}
+}

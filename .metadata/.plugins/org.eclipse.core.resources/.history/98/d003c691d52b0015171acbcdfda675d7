@@ -1,0 +1,148 @@
+import java.awt.Canvas;
+import java.awt.Image;
+import java.awt.event.MouseWheelEvent;
+
+/**
+ * Entry point classes define <code>onModuleLoad()</code>.
+ */
+public class Test implements EntryPoint, MouseWheelHandler, MouseDownHandler,
+		MouseMoveHandler, MouseUpHandler {
+
+	Canvas canvas = Canvas.createIfSupported();
+	Context2d context = canvas.getContext2d();
+
+	Canvas backCanvas = Canvas.createIfSupported();
+	Context2d backContext = backCanvas.getContext2d();
+
+	int width = 800;
+	int height = 600;
+	Image image = new Image("test.jpg");
+	ImageElement img = (ImageElement) image.getElement().cast();
+
+	double zoom = 1;
+	double totalZoom = 1;
+	double offsetX = 0;
+	double offsetY = 0;
+
+	boolean mouseDown = false;
+	double mouseDownXPos = 0;
+	double mouseDownYPos = 0;
+
+	public void onModuleLoad() {
+		canvas.setWidth(width + "px");
+		canvas.setCoordinateSpaceWidth(width);
+
+		canvas.setHeight(height + "px");
+		canvas.setCoordinateSpaceHeight(height);
+
+		backCanvas.setWidth(width + "px");
+		backCanvas.setCoordinateSpaceWidth(width);
+		backCanvas.setHeight(height + "px");
+		backCanvas.setCoordinateSpaceHeight(height);
+		RootPanel.get("container").add(canvas);
+		mainDraw();
+		canvas.addMouseWheelHandler(this);
+		canvas.addMouseMoveHandler(this);
+		canvas.addMouseDownHandler(this);
+		canvas.addMouseUpHandler(this);
+	}
+
+	public void onMouseWheel(MouseWheelEvent event) {
+
+		int move = event.getDeltaY();
+
+		double xPos = (event.getRelativeX(canvas.getElement()));
+		double yPos = (event.getRelativeY(canvas.getElement()));
+
+		if (move < 0) {
+			zoom = 1.1;
+		} else {
+			zoom = 1 / 1.1;
+		}
+
+		double newX = (xPos - offsetX) / totalZoom;
+		double newY = (yPos - offsetY) / totalZoom;
+
+		double xPosition = (-newX * zoom) + newX;
+		double yPosition = (-newY * zoom) + newY;
+
+		backContext.translate(xPosition, yPosition);
+
+		backContext.scale(zoom, zoom);
+
+		mainDraw();
+
+		backContext.fillText("Center", 400, 300);
+
+		backContext.fillText("ZERO", 0, 10);
+		backContext.fillText("Point", newX, newY);
+
+		offsetX += (xPosition * totalZoom);
+		offsetY += (yPosition * totalZoom);
+
+		totalZoom = totalZoom * zoom;
+
+		buffer(backContext, context);
+	}
+
+	public void onMouseDown(MouseDownEvent event) {
+		this.mouseDown = true;
+		mouseDownXPos = event.getRelativeX(image.getElement());
+		mouseDownYPos = event.getRelativeY(image.getElement());
+	}
+
+	public void onMouseMove(MouseMoveEvent event) {
+		if (mouseDown) {
+			backContext.setFillStyle("white");
+			backContext.fillRect(-5, -5, width + 5, height + 5);
+			backContext.setFillStyle("black");
+			double xPos = event.getRelativeX(image.getElement());
+			double yPos = event.getRelativeY(image.getElement());
+			backContext.translate((xPos - mouseDownXPos) / totalZoom,
+					(yPos - mouseDownYPos) / totalZoom);
+
+			offsetX += (xPos - mouseDownXPos);
+			offsetY += (yPos - mouseDownYPos);
+
+			mainDraw();
+			mouseDownXPos = xPos;
+			mouseDownYPos = yPos;
+
+		}
+	}
+
+	public void onMouseUp(MouseUpEvent event) {
+		this.mouseDown = false;
+	}
+
+	public void mainDraw() {
+		// your drawing code
+		backContext.drawImage(img, 0, 0);
+		backContext.beginPath();
+		backContext.rect(10, 10, 780, 580);
+		backContext.stroke();
+		Sketch sketch = new Sketch() {
+			@Override
+			public void sktech(Context2d backContext) {
+				backContext.beginPath();
+				backContext.arc(0, 0, 10, 0, 360);
+				backContext.stroke();
+				backContext.fillText("Testing", 10, -5);
+				backContext.moveTo(10, 0);
+				backContext.lineTo(40, 0);
+				backContext.moveTo(20, 0);
+				backContext.lineTo(20, 15);
+				backContext.moveTo(30, 0);
+				backContext.lineTo(30, 15);
+				backContext.stroke();
+			}
+		};
+		backContext.fillText("simple", 100, 100 + 20);
+		buffer(backContext, context);
+	}
+
+	public void buffer(Context2d back, Context2d front) {
+		front.drawImage(back.getCanvas(), 0, 0);
+	}
+
+}

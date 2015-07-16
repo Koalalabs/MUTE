@@ -1,2 +1,8 @@
 1436976896483	Rename field 'menuBar'
 1436976907877	Rename method 'getMenuBar_1'
+1437058906142	Delete element
+1437065335740	Encapsulate field 'muteGuiPanel'
+1437065388942	Delete element
+1437065486388	Rename type 'ZoomAndPanCanvas'
+1437065529151	Rename type 'ZoomAndPanListener'
+1437068629709	Rename field 'zoomAndPanListener'

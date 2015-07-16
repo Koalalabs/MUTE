@@ -1,0 +1,7 @@
+package org.de.koalalabs.mute;
+
+import java.awt.Canvas;
+
+public class MuteCanvas extends Canvas {
+
+}
