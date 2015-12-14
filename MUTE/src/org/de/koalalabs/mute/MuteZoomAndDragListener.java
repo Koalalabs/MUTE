@@ -2,6 +2,7 @@ package org.de.koalalabs.mute;
 
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -11,10 +12,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 
-public class MuteZoomAndDragListener implements MouseListener,
-		MouseMotionListener, MouseWheelListener {
+public class MuteZoomAndDragListener implements MouseListener, MouseMotionListener, MouseWheelListener {
 	public static final int DEFAULT_MIN_ZOOM_LEVEL = -20;
-	public static final int DEFAULT_MAX_ZOOM_LEVEL = 10;
+	public static final int DEFAULT_MAX_ZOOM_LEVEL = 30;
 	public static final double DEFAULT_ZOOM_MULTIPLICATION_FACTOR = 1.2;
 
 	private Component targetComponent;
@@ -32,8 +32,7 @@ public class MuteZoomAndDragListener implements MouseListener,
 		this.targetComponent = targetComponent;
 	}
 
-	public MuteZoomAndDragListener(Component targetComponent, int minZoomLevel,
-			int maxZoomLevel, double zoomMultiplicationFactor) {
+	public MuteZoomAndDragListener(Component targetComponent, int minZoomLevel, int maxZoomLevel, double zoomMultiplicationFactor) {
 		this.targetComponent = targetComponent;
 		this.minZoomLevel = minZoomLevel;
 		this.maxZoomLevel = maxZoomLevel;
@@ -62,7 +61,14 @@ public class MuteZoomAndDragListener implements MouseListener,
 	}
 
 	public void mouseDragged(MouseEvent e) {
-		moveCamera(e);
+		try {
+			Shape currentSzeneShape = MuteCanvas.getCurrentSzeneShape();
+			if (currentSzeneShape == null || !currentSzeneShape.contains(transformPoint(e.getPoint()))) {
+				moveCamera(e);
+			}
+		} catch (NoninvertibleTransformException e1) {
+			e1.printStackTrace();
+		}
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e) {
@@ -93,22 +99,18 @@ public class MuteZoomAndDragListener implements MouseListener,
 				if (zoomLevel < maxZoomLevel) {
 					zoomLevel++;
 					Point2D p1 = transformPoint(p);
-					coordTransform.scale(1 / zoomMultiplicationFactor,
-							1 / zoomMultiplicationFactor);
+					coordTransform.scale(1 / zoomMultiplicationFactor, 1 / zoomMultiplicationFactor);
 					Point2D p2 = transformPoint(p);
-					coordTransform.translate(p2.getX() - p1.getX(), p2.getY()
-							- p1.getY());
+					coordTransform.translate(p2.getX() - p1.getX(), p2.getY() - p1.getY());
 					targetComponent.repaint();
 				}
 			} else {
 				if (zoomLevel > minZoomLevel) {
 					zoomLevel--;
 					Point2D p1 = transformPoint(p);
-					coordTransform.scale(zoomMultiplicationFactor,
-							zoomMultiplicationFactor);
+					coordTransform.scale(zoomMultiplicationFactor, zoomMultiplicationFactor);
 					Point2D p2 = transformPoint(p);
-					coordTransform.translate(p2.getX() - p1.getX(), p2.getY()
-							- p1.getY());
+					coordTransform.translate(p2.getX() - p1.getX(), p2.getY() - p1.getY());
 					targetComponent.repaint();
 				}
 			}
@@ -117,8 +119,7 @@ public class MuteZoomAndDragListener implements MouseListener,
 		}
 	}
 
-	private Point2D.Float transformPoint(Point p1)
-			throws NoninvertibleTransformException {
+	public Point2D.Float transformPoint(Point p1) throws NoninvertibleTransformException {
 		AffineTransform inverse = coordTransform.createInverse();
 
 		Point2D.Float p2 = new Point2D.Float();

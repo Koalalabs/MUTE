@@ -1,0 +1,75 @@
+package org.de.koalalabs.mute;
+
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class ShapeMoving extends JFrame {
+
+	ShapeMoving() {
+		super("Shape Moving Demo");
+		setSize(600, 600);
+		add(new DrawingPanel());
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+
+	private class DrawingPanel extends JPanel implements MouseMotionListener {
+
+		private final int size = 100;
+		private Rectangle shape = null;
+
+		DrawingPanel() {
+			addMouseMotionListener(this);
+			addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent me) {
+					int x = me.getX();
+					int y = me.getY();
+					if (!selectedExistingRectangle(x, y)) {
+						setRectangle(x, y);
+					}
+				}
+			});
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent me) {
+			int x = me.getX();
+			int y = me.getY();
+			if (selectedExistingRectangle(x, y)) {
+				setRectangle(x, y);
+			}
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent me) {
+		}
+
+		public void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			if (shape == null)
+				return;
+			((Graphics2D) g).fill(shape);
+		}
+
+		boolean selectedExistingRectangle(int x, int y) {
+			return shape != null && shape.contains(x, y);
+		}
+
+		void setRectangle(int x, int y) {
+			shape = new Rectangle(x - (size / 2), y - (size / 2), size, size);
+			repaint();
+		}
+	}
+
+	public static void main(String[] args) {
+		new ShapeMoving();
+	}
+}

@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -34,6 +36,8 @@ public class MuteGui extends JFrame {
 	private JLabel lblVerbindung;
 	private JTextField txtSzene;
 	private JTextField txtAktion;
+	private JButton btnSzene;
+	private MuteCanvas canvas = new MuteCanvas(null);
 
 	public MuteGui() {
 		initGUI();
@@ -41,9 +45,10 @@ public class MuteGui extends JFrame {
 
 	private void initGUI() {
 		setTitle("MUTE");
-		setPreferredSize(new Dimension(900, 900));
 		setMinimumSize(new Dimension(500, 500));
-		setSize(new Dimension(900, 900));
+		setMaximumSize(new Dimension(1920, 1080));
+		setPreferredSize(new Dimension(1000, 1000));
+		setSize(new Dimension(1000, 1000));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0 };
@@ -96,25 +101,25 @@ public class MuteGui extends JFrame {
 	private JPanel getToolPanel() {
 		if (toolPanel == null) {
 			toolPanel = new JPanel();
+			toolPanel.setFocusable(false);
 			toolPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
 			GridBagLayout gbl_toolPanel = new GridBagLayout();
 			gbl_toolPanel.columnWidths = new int[] { 133, 0 };
-			gbl_toolPanel.rowHeights = new int[] { 32, 68, 29, 32, 30, 0, 0 };
+			gbl_toolPanel.rowHeights = new int[] { 32, 68, 29, 32, 30, 0, 0, 0 };
 			gbl_toolPanel.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-			gbl_toolPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0,
-					0.0, Double.MIN_VALUE };
+			gbl_toolPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 			toolPanel.setLayout(gbl_toolPanel);
 			GridBagConstraints gbc_lblSzene = new GridBagConstraints();
 			gbc_lblSzene.insets = new Insets(0, 0, 5, 0);
 			gbc_lblSzene.gridx = 0;
 			gbc_lblSzene.gridy = 0;
 			toolPanel.add(getLblSzene(), gbc_lblSzene);
-			GridBagConstraints gbc_txtSzene = new GridBagConstraints();
-			gbc_txtSzene.insets = new Insets(0, 0, 5, 0);
-			gbc_txtSzene.fill = GridBagConstraints.BOTH;
-			gbc_txtSzene.gridx = 0;
-			gbc_txtSzene.gridy = 1;
-			toolPanel.add(getTxtSzene(), gbc_txtSzene);
+			GridBagConstraints gbc_btnSzene = new GridBagConstraints();
+			gbc_btnSzene.fill = GridBagConstraints.BOTH;
+			gbc_btnSzene.insets = new Insets(0, 0, 5, 0);
+			gbc_btnSzene.gridx = 0;
+			gbc_btnSzene.gridy = 1;
+			toolPanel.add(getBtnSzene(), gbc_btnSzene);
 			GridBagConstraints gbc_lblAktion = new GridBagConstraints();
 			gbc_lblAktion.insets = new Insets(0, 0, 5, 0);
 			gbc_lblAktion.gridx = 0;
@@ -132,10 +137,16 @@ public class MuteGui extends JFrame {
 			gbc_lblVerbindung.gridy = 4;
 			toolPanel.add(getLblVerbindung(), gbc_lblVerbindung);
 			GridBagConstraints gbc_pfeilBtn = new GridBagConstraints();
+			gbc_pfeilBtn.insets = new Insets(0, 0, 5, 0);
 			gbc_pfeilBtn.fill = GridBagConstraints.HORIZONTAL;
 			gbc_pfeilBtn.gridx = 0;
 			gbc_pfeilBtn.gridy = 5;
 			toolPanel.add(getPfeilBtn(), gbc_pfeilBtn);
+			GridBagConstraints gbc_txtSzene = new GridBagConstraints();
+			gbc_txtSzene.fill = GridBagConstraints.BOTH;
+			gbc_txtSzene.gridx = 0;
+			gbc_txtSzene.gridy = 6;
+			toolPanel.add(getTxtSzene(), gbc_txtSzene);
 		}
 		return toolPanel;
 	}
@@ -144,15 +155,16 @@ public class MuteGui extends JFrame {
 		if (diagrammPanel == null) {
 			diagrammPanel = new JPanel();
 			diagrammPanel.setBackground(Color.WHITE);
-			diagrammPanel.setCursor(Cursor
-					.getPredefinedCursor(Cursor.MOVE_CURSOR));
+			diagrammPanel.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 			GridBagLayout gbl_diagrammPanel = new GridBagLayout();
 			gbl_diagrammPanel.columnWidths = new int[] { 0 };
 			gbl_diagrammPanel.rowHeights = new int[] { 0 };
 			gbl_diagrammPanel.columnWeights = new double[] { Double.MIN_VALUE };
 			gbl_diagrammPanel.rowWeights = new double[] { Double.MIN_VALUE };
 			diagrammPanel.setLayout(gbl_diagrammPanel);
-			diagrammPanel.add(new MuteCanvas(diagrammPanel));
+			MuteCanvas muteCanvas = new MuteCanvas(diagrammPanel);
+			diagrammPanel.setDoubleBuffered(true);
+			diagrammPanel.add(muteCanvas);
 		}
 		return diagrammPanel;
 	}
@@ -160,11 +172,9 @@ public class MuteGui extends JFrame {
 	private JButton getPfeilBtn() {
 		if (pfeilBtn == null) {
 			pfeilBtn = new JButton("");
-			pfeilBtn.setCursor(Cursor
-					.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+			pfeilBtn.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			pfeilBtn.setContentAreaFilled(false);
-			pfeilBtn.setIcon(new ImageIcon(MuteGui.class
-					.getResource("/icons/Pfeil.png")));
+			pfeilBtn.setIcon(new ImageIcon(MuteGui.class.getResource("/icons/Pfeil.png")));
 			pfeilBtn.setBorderPainted(false);
 		}
 		return pfeilBtn;
@@ -215,5 +225,23 @@ public class MuteGui extends JFrame {
 			txtAktion.setColumns(10);
 		}
 		return txtAktion;
+	}
+
+	private JButton getBtnSzene() {
+		if (btnSzene == null) {
+			btnSzene = new JButton("");
+			btnSzene.setIcon(new ImageIcon(MuteGui.class.getResource("/icons/SzeneToolleiste.png")));
+			btnSzene.setContentAreaFilled(false);
+			btnSzene.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			btnSzene.setBorderPainted(false);
+			btnSzene.setFocusable(false);
+			btnSzene.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					canvas.erstelleSzene();
+				}
+			});
+		}
+		return btnSzene;
 	}
 }

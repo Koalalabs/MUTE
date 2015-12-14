@@ -1,36 +1,41 @@
 package org.de.koalalabs.mute;
 
 import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
-public class MuteCanvas extends Canvas {
+public class MuteCanvas extends Canvas implements MouseMotionListener {
 
 	private static final long serialVersionUID = 1L;
-
 	private boolean init = true;
-
 	private MuteZoomAndDragListener muteZoomAndDragListener;
-
 	private Component muteGuiPanel;
+	private static Shape currentSzeneShape;
+	private final int szeneShapeWidth = 279;
+	private final int szeneShapeHeight = 300;
+	private ArrayList<Rectangle> rectangles = new ArrayList<Rectangle>();
+
+	// private Image szeneZettel =
+	// Toolkit.getDefaultToolkit().getImage(MuteCanvas.class.getResource("/icons/Szene.png"));
 
 	public MuteCanvas(Component c) {
 		setMuteGuiPanel(c);
+		addMouseMotionListener(this);
 		this.muteZoomAndDragListener = new MuteZoomAndDragListener(this);
-		this.addMouseListener(muteZoomAndDragListener);
-		this.addMouseMotionListener(muteZoomAndDragListener);
-		this.addMouseWheelListener(muteZoomAndDragListener);
-	}
-
-	public MuteCanvas(int minZoomLevel, int maxZoomLevel,
-			double zoomMultiplicationFactor) {
-		this.muteZoomAndDragListener = new MuteZoomAndDragListener(this,
-				minZoomLevel, maxZoomLevel, zoomMultiplicationFactor);
 		this.addMouseListener(muteZoomAndDragListener);
 		this.addMouseMotionListener(muteZoomAndDragListener);
 		this.addMouseWheelListener(muteZoomAndDragListener);
@@ -40,17 +45,12 @@ public class MuteCanvas extends Canvas {
 		Graphics offgc;
 		Image offscreen = null;
 		Dimension d = getSize();
-
-		// create the offscreen buffer and associated Graphics
 		offscreen = createImage(d.width, d.height);
 		offgc = offscreen.getGraphics();
-		// clear the exposed area
-		offgc.setColor(getBackground());
+		offgc.setColor(Color.black);
 		offgc.fillRect(0, 0, d.width, d.height);
-		offgc.setColor(getForeground());
-		// do normal redraw
+		offgc.setColor(Color.white);
 		paint(offgc);
-		// transfer offscreen to window
 		g.drawImage(offscreen, 0, 0, this);
 	}
 
@@ -60,32 +60,68 @@ public class MuteCanvas extends Canvas {
 
 	public void paint(Graphics g1) {
 		Graphics2D g = (Graphics2D) g1;
+		Image papier = Toolkit.getDefaultToolkit().getImage(MuteCanvas.class.getResource("/icons/Papier.jpg"));
+		g.drawImage(papier, 0, 0, 1920, 1080, this);
 		if (init) {
-			// Initialize the viewport by moving the origin to the center of the
-			// window,
-			// and inverting the y-axis to point upwards.
 			init = false;
 			Dimension d = getSize();
 			int xc = d.width / 2;
 			int yc = d.height / 2;
 			g.translate(xc, yc);
 			g.scale(1, -1);
-			// Save the viewport to be updated by the ZoomAndPanListener
 			muteZoomAndDragListener.setCoordTransform(g.getTransform());
 		} else {
-			// Restore the viewport after it was updated by the
-			// ZoomAndPanListener
 			g.setTransform(muteZoomAndDragListener.getCoordTransform());
 		}
-
-		// Draw the axes
+		if (getRectangles() != null) {
+			for (Rectangle rectangle : rectangles) {
+				g.draw(rectangle);
+			}
+		}
 		g.drawLine(-1000, 0, 1000, 0);
 		g.drawLine(0, -1000, 0, 1000);
-		// Create an "upside-down" font to correct for the inverted y-axis
 		Font font = g.getFont();
 		AffineTransform affineTransform = new AffineTransform();
 		affineTransform.scale(1, -1);
 		g.setFont(font.deriveFont(affineTransform));
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent me) {
+		try {
+			Point2D.Float point;
+			point = muteZoomAndDragListener.transformPoint(me.getPoint());
+			if (selectedExistingRectangle((int) point.x, (int) point.y)) {
+				setRectangle((int) point.x, (int) point.y);
+			}
+		} catch (NoninvertibleTransformException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent me) {
+	}
+
+	public void erstelleSzene() {
+		Rectangle szeneShape = new MuteSzeneShape((int) (getSzeneShapeWidth() * -0.5), (int) (getSzeneShapeHeight() * -0.5)).getRectangle();
+		setCurrentSzeneShape(szeneShape);
+		rectangles.add(szeneShape);
+	}
+
+	private void setRectangle(int x, int y) {
+		setCurrentSzeneShape(new Rectangle(x - (getSzeneShapeWidth() / 2), y - (getSzeneShapeHeight() / 2), getSzeneShapeWidth(),
+				getSzeneShapeHeight()));
+		repaint();
+	}
+
+	boolean selectedExistingRectangle(int x, int y) {
+		for (Rectangle rectangle : rectangles) {
+			if (rectangle != null && rectangle.contains(x, y)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public Component getMuteGuiPanel() {
@@ -96,4 +132,23 @@ public class MuteCanvas extends Canvas {
 		this.muteGuiPanel = muteGuiPanel;
 	}
 
+	public static Shape getCurrentSzeneShape() {
+		return currentSzeneShape;
+	}
+
+	public void setCurrentSzeneShape(Shape currentSzeneShape) {
+		MuteCanvas.currentSzeneShape = currentSzeneShape;
+	}
+
+	public int getSzeneShapeWidth() {
+		return szeneShapeWidth;
+	}
+
+	public int getSzeneShapeHeight() {
+		return szeneShapeHeight;
+	}
+
+	public ArrayList<Rectangle> getRectangles() {
+		return rectangles;
+	}
 }

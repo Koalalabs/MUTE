@@ -1,0 +1,131 @@
+package org.de.koalalabs.mute;
+
+import java.awt.Canvas;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
+
+public class MuteCanvas extends Canvas implements MouseMotionListener {
+
+	private static final long serialVersionUID = 1L;
+	private boolean init = true;
+	private MuteZoomAndDragListener muteZoomAndDragListener;
+	private Component muteGuiPanel;
+	private static Shape currentSzeneShape;
+	private final int szeneShapeWidth = 300;
+	private final int szeneShapeHeight = 279;
+
+	public MuteCanvas(Component c) {
+		setMuteGuiPanel(c);
+		addMouseMotionListener(this);
+		this.muteZoomAndDragListener = new MuteZoomAndDragListener(this);
+		this.addMouseListener(muteZoomAndDragListener);
+		this.addMouseMotionListener(muteZoomAndDragListener);
+		this.addMouseWheelListener(muteZoomAndDragListener);
+	}
+
+	public void update(Graphics g) {
+		Graphics offgc;
+		Image offscreen = null;
+		Dimension d = getSize();
+		offscreen = createImage(d.width, d.height);
+		offgc = offscreen.getGraphics();
+		offgc.setColor(getBackground());
+		offgc.fillRect(0, 0, d.width, d.height);
+		offgc.setColor(getForeground());
+		paint(offgc);
+		g.drawImage(offscreen, 0, 0, this);
+	}
+
+	public Dimension getPreferredSize() {
+		return new Dimension(muteGuiPanel.getWidth(), muteGuiPanel.getHeight());
+	}
+
+	public void paint(Graphics g1) {
+		Graphics2D g = (Graphics2D) g1;
+		Graphics2D szene = (Graphics2D) g1;
+		Image papier = Toolkit.getDefaultToolkit().getImage(
+				MuteCanvas.class.getResource("/icons/Papier.jpg"));
+		g.drawImage(papier, 0, 0, 1920, 1080, this);
+		if (init) {
+			Dimension d = getSize();
+			int xc = d.width / 2;
+			int yc = d.height / 2;
+			init = false;
+			g.translate(xc, yc);
+			g.scale(1, -1);
+			muteZoomAndDragListener.setCoordTransform(g.getTransform());
+			setCurrentSzeneShape(new MuteSzeneShape(
+					(int) (szeneShapeWidth * -0.5),
+					(int) (szeneShapeHeight * -0.5)).getShape());
+		} else {
+			g.setTransform(muteZoomAndDragListener.getCoordTransform());
+		}
+//		g.drawLine(-1000, 0, 1000, 0);
+		g.drawLine(0, -1000, 0, 1000);
+		if (getCurrentSzeneShape() != null) {
+			// szene.setColor(new Color(0, 0, 0, 0));
+			szene.fill(getCurrentSzeneShape());
+		}
+		Font font = g.getFont();
+		AffineTransform affineTransform = new AffineTransform();
+		affineTransform.scale(1, -1);
+		g.setFont(font.deriveFont(affineTransform));
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent me) {
+		try {
+			Point2D.Float point;
+			point = muteZoomAndDragListener.transformPoint(me.getPoint());
+			if (selectedExistingRectangle((int) point.x, (int) point.y)) {
+				setRectangle((int) point.x, (int) point.y);
+			}
+		} catch (NoninvertibleTransformException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent me) {
+	}
+
+	void setRectangle(int x, int y) {
+		setCurrentSzeneShape(new Rectangle(x - (szeneShapeWidth / 2), y
+				- (szeneShapeHeight / 2), szeneShapeWidth, szeneShapeHeight));
+		repaint();
+	}
+
+	boolean selectedExistingRectangle(int x, int y) {
+		return getCurrentSzeneShape() != null
+				&& getCurrentSzeneShape().contains(x, y);
+	}
+
+	public Component getMuteGuiPanel() {
+		return muteGuiPanel;
+	}
+
+	public void setMuteGuiPanel(Component muteGuiPanel) {
+		this.muteGuiPanel = muteGuiPanel;
+	}
+
+	public static Shape getCurrentSzeneShape() {
+		return currentSzeneShape;
+	}
+
+	public void setCurrentSzeneShape(Shape currentSzeneShape) {
+		MuteCanvas.currentSzeneShape = currentSzeneShape;
+	}
+
+}

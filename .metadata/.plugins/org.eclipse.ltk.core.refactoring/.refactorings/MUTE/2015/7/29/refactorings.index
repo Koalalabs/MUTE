@@ -6,3 +6,13 @@
 1437065486388	Rename type 'ZoomAndPanCanvas'
 1437065529151	Rename type 'ZoomAndPanListener'
 1437068629709	Rename field 'zoomAndPanListener'
+1437079762370	Delete element
+1437080923729	Encapsulate field 'shape'
+1437085411279	Encapsulate field 'graphic'
+1437086783874	Encapsulate field 'rect'
+1437129778301	Encapsulate field 'yPosition'
+1437129782690	Encapsulate field 'xPosition'
+1437132678663	Encapsulate field 'currentSzeneShape'
+1437224708223	Rename field 'size'
+1437224832022	Rename field 'szeneShapeSize'
+1437228459132	Delete elements

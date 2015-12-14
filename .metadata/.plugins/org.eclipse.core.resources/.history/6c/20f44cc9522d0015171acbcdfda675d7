@@ -1,0 +1,41 @@
+package org.de.koalalabs.mute;
+
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Toolkit;
+
+public class MuteSzeneShape {
+	private Shape shape;
+	private Rectangle rectangle;
+	private Image papier = Toolkit.getDefaultToolkit().getImage(
+			MuteCanvas.class.getResource("/icons/Papier.jpg"));
+
+	public MuteSzeneShape(int x, int y) {
+		rectangle = new Rectangle(x, y, 300, 279);
+		this.setShape(rectangle);
+	}
+
+	public void paint(Graphics g) {
+		Graphics2D szene = (Graphics2D) g;
+		szene.drawImage(img, x, y, width, height, observer)
+	}
+
+	public Rectangle getRectangle() {
+		return rectangle;
+	}
+
+	public void setRectangle(Rectangle rectangle) {
+		this.rectangle = rectangle;
+	}
+
+	public Shape getShape() {
+		return shape;
+	}
+
+	public void setShape(Shape shape) {
+		this.shape = shape;
+	}
+}
